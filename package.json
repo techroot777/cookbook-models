@@ -3,7 +3,7 @@
 	"version": "0.0.2",
 	"private": false,
 	"scripts": {
-		"build": "tsc"
+		"build": "rimraf dist && tsc"
 	},
 	"devDependencies": {
 		"@types/node": "^17.0.5",
