@@ -1,40 +1,51 @@
 import { RecipeDuration } from './time';
+import { recipeSchema } from './schemas/recipe';
 
 export interface RecipeResume {
-    imageUrl?: string;
+    /*Remote cover image URL*/
+    imageUrl: string;
+
+    /*Recipe name, example: "Carrot Cake With Chocolate Topping"*/
     name: string;
-    preparationTimeInMinutes: number;
+
+    /*Preparation time in hours and minutes*/
     preparationTime?: RecipeDuration;
+
+    /*Record's unique identifier, a GUID, for example*/
     id: string;
+
+    /*Estimated number of servings*/
     serves: number;
 }
 
 export interface RecipeData extends RecipeResume {
     ingredientsLists: IngredientsList[];
     preparationMode: Stage[];
-    culinary?: string[];
-    category?: string[];
-    additionalInfo?: string;
-    source: {
-        authorName: string;
-        url: string;
-    };
+    source: RecipeSource;
+}
+
+export interface RecipeSource {
+    /*Site name author*/
+    authorName: string;
+
+    /*Website URL author*/
+    url: string;
 }
 
 export interface Stage {
+    /*Step name, example: "prepare chocolate syrup"*/
     name?: string;
+
+    /*Detailed and ordered steps*/
     steps: string[];
 }
 
 export interface IngredientsList {
+    /*List title, example: "Chocolate syrup", "Cake dough"*/
     name?: string;
-    items: string[];
-}
 
-export interface Category {
-    imageUrl: string;
-    name: string;
-    id: number;
+    /*Ingredients for the list, example: ["100g powdered chocolate", "100ml milk"]*/
+    items: string[];
 }
 
 export class Recipe implements RecipeData {
@@ -44,61 +55,19 @@ export class Recipe implements RecipeData {
     readonly imageUrl!: string;
     readonly name!: string;
     readonly id!: string;
-    readonly preparationTimeInMinutes: number = NaN;
     readonly preparationTime!: RecipeDuration;
     readonly serves: number = NaN;
-    readonly culinary?: string[] = [];
-    readonly category?: string[] = [];
-    readonly additionalInfo?: string;
     readonly isValid: boolean = false;
 
     constructor(data: RecipeData) {
         Object.assign(this, data);
-        this.isValid = !this.getErrors().length;
+        this.isValid = !this.getErrors()?.length;
     }
 
-    getErrors(servesRequired = false, durationRequired = false): string[] {
-        const messages = [];
-
-        if (!this.name?.trim()) {
-            messages.push(this.requiredMessage('Nome'));
-        }
-
-        if (!this.imageUrl?.trim()) {
-            messages.push(this.requiredMessage('URL da image'));
-        }
-
-        if ((servesRequired && !this.serves) || isNaN(this.serves)) {
-            messages.push(this.requiredMessage('Número de porções'));
-        }
-
-        const { minutes, hours } = this.preparationTime;
-
-        if (
-            durationRequired &&
-            (!this.preparationTime || minutes + hours < 1)
-        ) {
-            messages.push(this.requiredMessage('A duração de preparo'));
-        }
-
-        if (
-            !this.ingredientsLists?.length ||
-            !this.ingredientsLists.some((list) => list.items.length > 0)
-        ) {
-            messages.push(this.requiredMessage('A lista de ingredientes'));
-        }
-
-        if (
-            !this.preparationMode?.length ||
-            !this.preparationMode.some((list) => list.steps.length > 0)
-        ) {
-            messages.push(this.requiredMessage('O modo de preparo'));
-        }
-
-        return messages;
-    }
-
-    private requiredMessage(attributeName: string) {
-        return `${attributeName} está vazio(a)`;
+    getErrors(): string[] | undefined {
+        const validationObject = recipeSchema.validate(this, {
+            abortEarly: false
+        });
+        return validationObject.error?.details.map((err) => err.message);
     }
 }
