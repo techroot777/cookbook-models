@@ -1,9 +1,16 @@
 {
 	"name": "cookbook-models",
-	"version": "0.0.2",
+	"version": "0.0.5",
 	"private": false,
+	"license": "MIT",
+	"main": "dist/index",
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
 	"scripts": {
-		"build": "rimraf dist && tsc"
+		"build": "rimraf dist && tsc",
+		"dev": "ts-node index.ts"
 	},
 	"devDependencies": {
 		"@types/node": "^17.0.5",
@@ -11,5 +18,8 @@
 		"prettier": "^2.4.1",
 		"ts-node": "^10.3.0",
 		"typescript": "^4.5.4"
+	},
+	"dependencies": {
+		"joi": "^17.5.0"
 	}
 }
